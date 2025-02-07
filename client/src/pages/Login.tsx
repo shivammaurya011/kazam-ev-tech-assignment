@@ -8,11 +8,11 @@ import { useToast } from "../components/ToastContext";
 function Login() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
   const { addToast } = useToast();
 
   const handleLogin = async (name: string | null, email: string, password: string) => {
     const result = await dispatch(loginUser({ email, password }));
+    console.log(name)
     if (loginUser.fulfilled.match(result)) {
       addToast("Login successful!", "success");
       dispatch(checkAuth())
