@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom"; 
 import AuthForm from "../components/auth/AuthForm";
 import { useAppDispatch } from "../app/hooks";
 import { checkAuth, clearError, loginUser } from "../features/auth/authSlice";
