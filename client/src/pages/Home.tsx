@@ -26,6 +26,7 @@ import {
 } from 'chart.js';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { createTask, getTasks } from '../features/tasks/tasksSlice';
+import { useToast } from '../components/ToastContext';
 
 ChartJS.register(
   CategoryScale,
@@ -41,8 +42,9 @@ ChartJS.register(
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
   const { tasks } = useAppSelector((state) => state.tasks);
+  const { addToast } = useToast();
 
-  // Use real data from the Redux store (fallback to empty array)
+  // Compute real data from Redux (fallback to 0 if no tasks)
   const totalTasks = tasks.length;
   const pendingTasks = tasks.filter((task) => task.status === 'pending').length;
   const inProgressTasks = tasks.filter((task) => task.status === 'ongoing').length;
@@ -50,12 +52,14 @@ const Home: React.FC = () => {
   const totalPercentage =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Modal state for Create / Edit Task
+  // Modal state for Create/Edit Task
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(getTasks())
-  }, [dispatch])
+      .unwrap()
+      .catch((err) => addToast(err, "error"));
+  }, [dispatch, addToast]);
 
   const openCreateModal = () => {
     setIsTaskModalOpen(true);
@@ -67,9 +71,13 @@ const Home: React.FC = () => {
 
   const handleTaskSubmit = (data: TaskFormData) => {
     dispatch(createTask(data))
+      .unwrap()
+      .then(() => addToast("Task created successfully", "success"))
+      .catch((err) => addToast(err, "error"));
     closeModal();
   };
 
+  // Dummy data for monthly progress
   const monthsProgress = [
     { month: 'Jan', tasks: 5 },
     { month: 'Feb', tasks: 7 },
@@ -78,6 +86,7 @@ const Home: React.FC = () => {
     { month: 'May', tasks: 12 },
   ];
 
+  // Line Chart for Total Work Progress
   const lineData = {
     labels: monthsProgress.map((item) => item.month),
     datasets: [
@@ -85,8 +94,8 @@ const Home: React.FC = () => {
         label: 'Tasks Completed',
         data: monthsProgress.map((item) => item.tasks),
         fill: false,
-        backgroundColor: 'rgba(16, 185, 129, 0.5)', 
-        borderColor: 'rgba(16, 185, 129, 1)', 
+        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+        borderColor: 'rgba(16, 185, 129, 1)',
         tension: 0.4,
         pointRadius: 5,
         pointHoverRadius: 7,
@@ -106,6 +115,7 @@ const Home: React.FC = () => {
     },
   };
 
+  // Pie Chart for Task Breakdown
   const pieData = {
     labels: ['Pending', 'In Progress', 'Completed'],
     datasets: [
@@ -113,9 +123,9 @@ const Home: React.FC = () => {
         label: 'Task Distribution',
         data: [pendingTasks, inProgressTasks, completedTasks],
         backgroundColor: [
-          'rgba(234, 179, 8, 0.8)',  
-          'rgba(59, 130, 246, 0.8)',  
-          'rgba(16, 185, 129, 0.8)',  
+          'rgba(234, 179, 8, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
         ],
         borderColor: [
           'rgba(234, 179, 8, 1)',
@@ -139,7 +149,7 @@ const Home: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row gap-8 p-4">
-        {/* Main Content  */}
+        {/* Main Content */}
         <div className="w-full md:w-8/12 space-y-8">
           {/* Welcome Area */}
           <div className="flex flex-col md:flex-row items-center bg-white rounded-lg p-6 shadow-sm">
@@ -151,7 +161,7 @@ const Home: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 Manage your tasks effectively to improve productivity and track your progress seamlessly.
               </p>
-              <button 
+              <button
                 onClick={openCreateModal}
                 className="flex items-center justify-center space-x-3 bg-green-500 text-white py-2 px-8 rounded shadow hover:bg-green-600 transition"
               >
@@ -228,7 +238,7 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Sidebar Content*/}
+        {/* Sidebar Content */}
         <div className="w-full md:w-4/12 space-y-8">
           {/* Calendar Section */}
           <div className="bg-white p-6 rounded-lg shadow-sm">

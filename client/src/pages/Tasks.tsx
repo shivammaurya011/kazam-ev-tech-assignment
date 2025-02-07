@@ -126,18 +126,20 @@ const Tasks: React.FC = () => {
 
   // Sort tasks if a sort field is selected
   const sortedTasks = sortField
-    ? [...filteredTasks].sort((a: Task, b: Task) => {
-        let valA = a[sortField];
-        let valB = b[sortField];
-        if (sortField === 'dueDate') {
-          valA = new Date(a.dueDate);
-          valB = new Date(b.dueDate);
-        }
+  ? [...filteredTasks].sort((a: Task, b: Task) => {
+      if (sortField === 'dueDate') {
+        const dateA = new Date(a.dueDate).getTime();
+        const dateB = new Date(b.dueDate).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        const valA = a[sortField] as string;
+        const valB = b[sortField] as string;
         if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
         if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
         return 0;
-      })
-    : filteredTasks;
+      }
+    })
+  : filteredTasks;
 
   const totalPages = Math.ceil(sortedTasks.length / itemsPerPage);
   const paginatedTasks = sortedTasks.slice(
